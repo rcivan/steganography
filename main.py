@@ -4,24 +4,32 @@ from PIL import Image
 def main():
     with Image.open("grayson.jpg") as im:
         im_bytes = im.tobytes()  # Convert image to raw bytes
-
-        print(len(im_bytes)/3)  # Length of im_bytes should be divisible by 3.
-
-        new_im_bytes = bytearray(len(im_bytes))  # Make a byte array to store my modified data
-        for i, b in enumerate(im_bytes):
-            new_im_bytes[i] = b ^ 0b10010110
-
+        message = "hello"
+        new_im_bytes = encode_im(im_bytes, message) 
         new_im = Image.frombytes('RGB', im.size, new_im_bytes)  # Make a new image
         new_im.show()  # Let's see what we did!
 
-        for bit in iter_bits(bytes([0b00001111,0b11110000])):
-            print(bit)
 
 #Return one bit at a time from a bytes or bytearray
 def iter_bits(inbytes):
     for b in inbytes:
         for i in range(8):
             yield b >> (7-i) & 1
+
+def encode_im(image, message):
+    bits = list(iter_bits(image))
+    bits[7:len(message) * 8:8] = message
+    return bits_to_ints(bits)
+
+def bits_to_ints(bits):
+    return bytearray([int("".join(str(x) for x in bits[i:i + 8]), 2) for i in range(0, len(bits), 8)])
+
+def make_im():
+    message = iter_bits(bytearray("hello", encoding='utf-8'))
+    with Image.open("grayson.jpg") as im:
+        im_bytes = im.tobytes()  
+        new_im_bytes = encode_im(im_bytes, list(message))
+        return Image.frombytes('RGB', im.size, new_im_bytes)  
 
 
 if __name__ == '__main__':
